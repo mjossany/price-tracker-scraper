@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Price Tracker Scraper Lambda Function'
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+    Description: 'Database connection string for Neon PostgresSQL'
+    NoEcho: true
+
+  LogLevel:
+    Type: String
+    Description: 'Logging level for the application'
+    Default: 'INFO'
+    AllowedValues: ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+
+Globals:
+  Function:
+    Timeout: 600
+    MemorySize: 512
+    Runtime: python3.12
+    Environment:
+      Variables:
+        LOG_LEVEL: !Ref LogLevel
+        MAX_CONCURRENT_REQUESTS: '10'
+        REQUEST_TIMEOUT: '30'
+        RETRY_ATTEMPTS: '3'
+
+Resources:
+  # IAM Role for Lambda function
+  PriceTrackerScraperRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CloudWatchLogsAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+
+  # Main Lambda Function
+  PriceTrackerScraperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-price-tracker-scraper'
+      CodeUri: ../
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt PriceTrackerScraperRole.Arn
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+      Events:
+        MorningScrape:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 9 * * ? *)
+            Description: 'Trigger scraper at 9 AM UTC daily'
+        EveningScrape:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 21 * * ? *)
+            Description: 'Trigger scraper at 9 PM UTC daily'
+
+Outputs:
+  PriceTrackerScraperFunctionArn:
+    Description: 'ARN of the Price Tracker Scraper Lambda Function'
+    Value: !GetAtt PriceTrackerScraperFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-PriceTrackerScraperArn'
+  
+  PriceTrackerScraperFunctionName:
+    Description: 'Name of the Price Tracker Scraper Lambda Function'
+    Value: !Ref PriceTrackerScraperFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-PriceTrackerScraperName'
