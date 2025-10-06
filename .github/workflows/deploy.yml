@@ -69,4 +69,4 @@ jobs:
             - name: Deploy to AWS
               run: |
                 cd infrastructure
-                sam deploy --no-confirm-changeset --parameter-overrides DatabaseUrl="${{ secrets.DATABASE_URL }}"
+                sam deploy --config-file samconfig.toml --no-confirm-changeset --parameter-overrides DatabaseUrl="${{ secrets.DATABASE_URL }}"
