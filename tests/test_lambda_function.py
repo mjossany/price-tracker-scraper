@@ -2,7 +2,9 @@ import json
 import sys
 import os
 
-from ..lambda_function import lambda_handler
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from lambda_function import lambda_handler
 
 def test_lambda_handler():
     """Test the basic Lambda handler function"""
