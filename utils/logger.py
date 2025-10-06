@@ -31,6 +31,7 @@ def get_logger(name: str = "price-tracker-scraper") -> logging.Logger:
         handler.setFormatter(formatter)
 
         logger.addHandler(handler)
+        logger.propagate = False
 
     return logger
 
