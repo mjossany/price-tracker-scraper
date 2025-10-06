@@ -69,8 +69,11 @@ jobs:
             - name: Deploy to AWS
               working-directory: infrastructure
               run: |
-                    sam deploy \
-                    --config-file samconfig.toml \
-                    --config-env default \
+                sam deploy \
+                    --stack-name price-tracker-scraper \
+                    --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-qy1wi0obg6b5 \
+                    --s3-prefix price-tracker-scraper \
+                    --region us-east-1 \
+                    --capabilities CAPABILITY_IAM \
                     --no-confirm-changeset \
-                    --parameter-overrides DatabaseUrl="${{ secrets.DATABASE_URL }}"
+                    --parameter-overrides DatabaseUrl="${{ secrets.DATABASE_URL }}" LogLevel=INFO
