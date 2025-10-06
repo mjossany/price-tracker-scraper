@@ -70,5 +70,3 @@ jobs:
               run: |
                 cd infrastructure
                 sam deploy --no-confirm-changeset --parameter-overrides DatabaseUrl="${{ secrets.DATABASE_URL }}"
-              env:
-                AWS_PROFILE: personal
