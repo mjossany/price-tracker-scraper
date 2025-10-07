@@ -60,19 +60,19 @@ price-tracker-scraper/
 - [x] Set up virtual environment and dependencies
 - [x] Create AWS SAM template for deployment
 - [x] Create SAM Configuration File for deployment
-- [ ] Configure GitHub Actions for CI/CD
+- [x] Configure GitHub Actions for CI/CD
 
-#### 1.2 Database Integration
-- [ ] Create database connection utility (`utils/db_client.py`)
-- [ ] Implement connection pooling for Lambda
-- [ ] Add retry logic for database operations
-- [ ] Test database connectivity
-
-#### 1.3 Logging & Monitoring
+#### 1.2 Logging & Monitoring
 - [ ] Set up structured logging with CloudWatch
 - [ ] Add performance metrics tracking
 - [ ] Implement error categorization
 - [ ] Create monitoring dashboards
+
+#### 1.3 Database Integration
+- [ ] Create database connection utility (`utils/db_client.py`)
+- [ ] Implement connection pooling for Lambda
+- [ ] Add retry logic for database operations
+- [ ] Test database connectivity
 
 ### Phase 2: Scraper Framework (Week 2)
 
