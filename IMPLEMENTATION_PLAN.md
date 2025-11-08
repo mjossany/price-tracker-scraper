@@ -63,10 +63,8 @@ price-tracker-scraper/
 - [x] Configure GitHub Actions for CI/CD
 
 #### 1.2 Logging & Monitoring
-- [ ] Set up structured logging with CloudWatch
-- [ ] Add performance metrics tracking
-- [ ] Implement error categorization
-- [ ] Create monitoring dashboards
+- [x] Set up structured logging with CloudWatch
+- [x] Add performance metrics tracking
 
 #### 1.3 Database Integration
 - [ ] Create database connection utility (`utils/db_client.py`)
@@ -295,6 +293,27 @@ class DatabaseClient:
 - [ ] Configure EventBridge scheduler
 - [ ] Set up CloudWatch monitoring
 - [ ] Test end-to-end functionality
+
+#### 5.4 Advanced Monitoring & Error Handling
+- [ ] **Implement error categorization**
+  - Network errors (timeouts, connection refused)
+  - Parsing errors (HTML structure changes, missing selectors)
+  - Database errors (connection failures, constraint violations)
+  - Rate limiting errors (429 responses, IP blocking)
+  - Business logic errors (product not found, price unavailable)
+
+- [ ] **Create monitoring dashboards**
+  - Success/failure rates by store
+  - Performance metrics (execution time, memory usage)
+  - Error trends and patterns
+  - Cost monitoring and optimization
+  - Real-time alerts for critical failures
+
+- [ ] **Set up alerting system**
+  - CloudWatch alarms for high error rates
+  - SNS notifications for critical failures
+  - Slack/email alerts for monitoring team
+  - Automated recovery procedures
 
 ## 🔧 Technical Specifications
 
