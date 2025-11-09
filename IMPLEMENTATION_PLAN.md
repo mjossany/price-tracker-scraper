@@ -452,24 +452,99 @@ jobs:
 
 The scraper will interact with these tables from the existing schema:
 
-### `product_links` table
-- **Read**: Fetch active links for scraping
-- **Update**: Update `last_price`, `last_checked_at`, `scrape_error_count`
+### Complete Schema
 
-### `price_history` table
-- **Insert**: Store new price data with metadata
+#### `users` table
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    email_verified BOOLEAN DEFAULT false,
+    is_active BOOLEAN DEFAULT true,
+    last_login_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+```
+
+#### `products` table
+```sql
+CREATE TABLE products (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    image_url TEXT,
+    target_price NUMERIC(12,2),
+    currency VARCHAR(3) DEFAULT 'USD',
+    notification_enabled BOOLEAN DEFAULT true,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+```
+
+#### `product_links` table
+```sql
+CREATE TABLE product_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    url TEXT UNIQUE NOT NULL,
+    store VARCHAR(100) NOT NULL,
+    product_identifier VARCHAR(255),
+    last_price NUMERIC(12,2),
+    lowest_price_seen NUMERIC(12,2),
+    highest_price_seen NUMERIC(12,2),
+    last_checked_at TIMESTAMP,
+    scrape_error_count INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+```
+- **Read**: Fetch active links for scraping
+- **Update**: Update `last_price`, `last_checked_at`, `scrape_error_count`, `lowest_price_seen`, `highest_price_seen`, `updated_at`
+
+#### `price_history` table
+```sql
+CREATE TABLE price_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_link_id UUID NOT NULL REFERENCES product_links(id) ON DELETE CASCADE,
+    price NUMERIC(12,2) NOT NULL,
+    original_price NUMERIC(12,2),
+    discount_percentage NUMERIC(5,2),
+    currency VARCHAR(3) DEFAULT 'USD',
+    was_available BOOLEAN DEFAULT true,
+    scrape_source VARCHAR(50),
+    response_time_ms INTEGER,
+    checked_at TIMESTAMP DEFAULT now()
+);
+```
+- **Insert**: Store new price data with metadata including performance metrics and discount information
 
 ### Key Fields for Scraping
 ```sql
 -- Product links to scrape
 SELECT pl.id, pl.url, pl.store, pl.product_identifier, 
-       pl.last_price, pl.scrape_error_count
+       pl.last_price, pl.lowest_price_seen, pl.highest_price_seen,
+       pl.scrape_error_count, p.target_price, p.currency
 FROM product_links pl
 JOIN products p ON pl.product_id = p.id
 WHERE pl.is_active = true 
 AND p.is_active = true
 AND (pl.last_checked_at IS NULL OR pl.last_checked_at < NOW() - INTERVAL '6 hours')
+ORDER BY pl.last_checked_at ASC NULLS FIRST;
 ```
+
+### Key Schema Notes
+- All tables use **UUID** primary keys instead of SERIAL integers
+- All foreign keys have `ON DELETE CASCADE` for data integrity
+- Price fields use `NUMERIC(12,2)` for precision (10 digits before decimal, 2 after)
+- Timestamps use `now()` instead of `CURRENT_TIMESTAMP`
+- The `price_history` table tracks performance (`response_time_ms`) and discount data
+- The `product_links` table maintains price ranges (`lowest_price_seen`, `highest_price_seen`)
 
 ## 🎯 Success Criteria
 
