@@ -3,7 +3,7 @@ import logging
 import os
 import time
 import psutil
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 import traceback
 
@@ -15,7 +15,7 @@ class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
         log_data = {
-            "timestamp": datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z"),
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -157,7 +157,7 @@ class MetricsLogger:
         """Record overall execution metrics."""
         total_duration = time.time() - self.start_time
         self.record("total_execution_time_seconds", total_duration)
-        self.record("execution_timestamp", datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z"))
+        self.record("execution_timestamp", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 
         # Calculate success rate if we have success/failure counts
         total_attempts = self.counters.get("successful_operations", 0) + self.counters.get("failed_operations", 0)
