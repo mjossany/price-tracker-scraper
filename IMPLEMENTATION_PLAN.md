@@ -67,10 +67,10 @@ price-tracker-scraper/
 - [x] Add performance metrics tracking
 
 #### 1.3 Database Integration
-- [ ] Create database connection utility (`utils/db_client.py`)
-- [ ] Implement connection pooling for Lambda
-- [ ] Add retry logic for database operations
-- [ ] Test database connectivity
+- [x] Create database connection utility (`utils/db_client.py`)
+- [x] Implement connection pooling for Lambda
+- [x] Add retry logic for database operations
+- [x] Test database connectivity
 
 ### Phase 2: Scraper Framework (Week 2)
 
