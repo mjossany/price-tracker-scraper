@@ -246,7 +246,7 @@ def sample_product_link(test_database_url, sample_product):
             store,
             product_identifier,
             is_active,
-            scraper_error_count
+            scrape_error_count
         )
         VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id, url, store, product_id
