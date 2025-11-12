@@ -75,57 +75,56 @@ price-tracker-scraper/
 ### Phase 2: Scraper Framework (Week 2)
 
 #### 2.1 Base Scraper Class
-```python
-# scrapers/base.py
-class BaseScraper:
-    def __init__(self, session):
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (compatible; PriceTracker/1.0)',
-            'Accept': 'text/html,application/xhtml+xml',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate',
-            'Connection': 'keep-alive',
-        })
-    
-    def scrape_price(self, url: str) -> ScrapingResult:
-        """Abstract method to be implemented by each scraper"""
-        pass
-    
-    def extract_price(self, html: str, selectors: List[str]) -> Optional[float]:
-        """Common price extraction logic"""
-        pass
-```
+- [x] Create `scrapers/base.py` with base functionality
+- [x] Implement HTTP session management with Brazilian headers (pt-BR)
+- [x] Add price parsing for Brazilian Real (R$) format
+- [x] Support multiple price formats: R$ 1.234,56 and R$ 1 234,56
+- [x] Add Portuguese language support for availability checks
+- [x] Implement currency detection (BRL as default)
+- [x] Add retry logic and rate limiting
+- [x] Create ScrapingResult dataclass for standardized output
 
-#### 2.2 Site-Specific Scrapers
-- [ ] **Amazon Scraper** (`scrapers/amazon.py`)
+#### 2.2 Site-Specific Scrapers (Brazilian E-commerce)
+- [ ] **Mercado Livre Scraper** (`scrapers/mercadolivre.py`)
+  - Handle auction vs fixed price listings
+  - Extract shipping costs (frete grátis detection)
+  - Handle "Melhores Ofertas" and promotions
+  - Deal with seller variations
+
+- [ ] **Amazon Brasil Scraper** (`scrapers/amazon_br.py`)
   - Handle different product page layouts
   - Extract price, original price, availability
   - Handle Prime vs non-Prime pricing
-  - Deal with "Currently unavailable" states
+  - Deal with "Indisponível" states
+  - Handle parcelamento (installment prices)
 
-- [ ] **eBay Scraper** (`scrapers/ebay.py`)
-  - Handle auction vs Buy It Now
-  - Extract shipping costs
-  - Handle "Best Offer" scenarios
-
-- [ ] **Walmart Scraper** (`scrapers/walmart.py`)
+- [ ] **Magazine Luiza Scraper** (`scrapers/magazineluiza.py`)
   - Handle in-store vs online pricing
   - Extract pickup/delivery options
+  - Handle "Retirada em Loja"
+  - Extract parcelamento information
 
-- [ ] **Best Buy Scraper** (`scrapers/bestbuy.py`)
-  - Handle member pricing
+- [ ] **Americanas Scraper** (`scrapers/americanas.py`)
+  - Handle marketplace sellers
+  - Extract shipping and delivery times
+  - Handle cashback/points promotions
+  - Extract parcelamento details
+
+- [ ] **Casas Bahia Scraper** (`scrapers/casasbahia.py`)
+  - Handle different payment methods pricing
   - Extract store pickup availability
+  - Handle parcelamento (installments)
 
 #### 2.3 Scraper Factory
 ```python
 # scrapers/__init__.py
 def get_scraper(store: str) -> BaseScraper:
     scrapers = {
-        'amazon': AmazonScraper,
-        'ebay': EbayScraper,
-        'walmart': WalmartScraper,
-        'bestbuy': BestBuyScraper,
+        'mercadolivre': MercadoLivreScraper,
+        'amazon_br': AmazonBrasilScraper,
+        'magazineluiza': MagazineLuizaScraper,
+        'americanas': AmericanasScraper,
+        'casasbahia': CasasBahiaScraper,
     }
     return scrapers.get(store.lower(), GenericScraper)()
 ```
@@ -314,6 +313,35 @@ class DatabaseClient:
   - SNS notifications for critical failures
   - Slack/email alerts for monitoring team
   - Automated recovery procedures
+
+## 🇧🇷 Brazilian E-commerce Considerations
+
+### Price Format Handling
+- **Brazilian Real (R$)**: Primary currency for Brazilian sites
+- **Decimal Separator**: Comma (,) e.g., R$ 1.234,56
+- **Thousands Separator**: Dot (.) or space ( ) e.g., R$ 1.234,56 or R$ 1 234,56
+- **Parcelamento**: Handle installment pricing (e.g., "12x de R$ 99,90")
+- **À Vista**: Cash price often differs from credit card price
+
+### Common Brazilian E-commerce Features
+- **Frete Grátis**: Free shipping detection
+- **Retirada em Loja**: Store pickup options
+- **Cashback/Pontos**: Loyalty program pricing
+- **PIX Discounts**: Special pricing for PIX payments
+- **Boleto Discounts**: Special pricing for bank slip payments
+- **Marketplace Sellers**: Multiple sellers per product (especially Mercado Livre)
+
+### Supported Brazilian Sites
+1. **Mercado Livre** - Largest marketplace in Latin America
+2. **Amazon.com.br** - Amazon's Brazilian storefront
+3. **Magazine Luiza** - Major Brazilian retailer
+4. **Americanas** - Popular online retailer
+5. **Casas Bahia** - Electronics and home goods retailer
+
+### Language Support
+- **Accept-Language**: `pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7`
+- **Availability Phrases**: Portuguese phrases for "out of stock"
+- **Price Keywords**: Handle "de", "por", "a partir de", "por apenas"
 
 ## 🔧 Technical Specifications
 
@@ -549,7 +577,9 @@ ORDER BY pl.last_checked_at ASC NULLS FIRST;
 ## 🎯 Success Criteria
 
 ### MVP (Minimum Viable Product)
-- [ ] Successfully scrape prices from Amazon, eBay, Walmart, Best Buy
+- [ ] Successfully scrape prices from Mercado Livre, Amazon BR, Magazine Luiza, Americanas, Casas Bahia
+- [ ] Handle Brazilian Real (R$) currency and price formats
+- [ ] Support parcelamento (installment) pricing
 - [ ] Store price history in database
 - [ ] Run twice daily via EventBridge
 - [ ] Handle 100+ products per run
