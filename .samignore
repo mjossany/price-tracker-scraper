@@ -1,0 +1,26 @@
+# Ignore virtual environment - SAM will use its own Python in the container
+venv/
+
+# Ignore build artifacts
+.aws-sam/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore test files
+tests/
+pytest.ini
+
+# Ignore development files
+*.log
+.DS_Store
+

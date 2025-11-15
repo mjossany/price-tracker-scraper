@@ -1,0 +1,6 @@
+{
+    "action": "test_scraper",
+    "store": "mercadolivre",
+    "url": "https://produto.mercadolivre.com.br/MLB-4276231251-iphone-17-256-gb-preto-_JM?searchVariation=192316579653#polycard_client=search-nordic&searchVariation=192316579653&search_layout=stack&position=42&type=item&tracking_id=bcba36a5-7f05-4c1e-b1b4-550e2594d2c8",
+    "product_link_id": "test-ml-001"
+}

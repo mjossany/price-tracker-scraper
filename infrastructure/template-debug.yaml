@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Price Tracker Scraper Lambda Function (Debug Version)'
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+    Description: 'Database connection string for Neon PostgresSQL'
+    NoEcho: true
+    Default: 'postgresql://dummy:dummy@localhost:5432/dbname'
+
+  LogLevel:
+    Type: String
+    Description: 'Logging level for the application'
+    Default: 'DEBUG'
+    AllowedValues: ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+
+Globals:
+  Function:
+    Timeout: 600
+    MemorySize: 512
+    Runtime: python3.12
+    Environment:
+      Variables:
+        LOG_LEVEL: !Ref LogLevel
+        MAX_CONCURRENT_REQUESTS: '10'
+        REQUEST_TIMEOUT: '30'
+        RETRY_ATTEMPTS: '3'
+
+Resources:
+  # IAM Role for Lambda function
+  PriceTrackerScraperRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CloudWatchLogsAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+
+  # Main Lambda Function (Debug Version)
+  PriceTrackerScraperFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: price-tracker-scraper-debug
+      CodeUri: ../
+      Handler: lambda_function_debug.lambda_handler  # Points to debug wrapper
+      Role: !GetAtt PriceTrackerScraperRole.Arn
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          DEBUG_PORT: '5678'  # Enable debug port
+
+Outputs:
+  PriceTrackerScraperFunctionArn:
+    Description: 'ARN of the Price Tracker Scraper Lambda Function (Debug)'
+    Value: !GetAtt PriceTrackerScraperFunction.Arn
+  
+  PriceTrackerScraperFunctionName:
+    Description: 'Name of the Price Tracker Scraper Lambda Function (Debug)'
+    Value: !Ref PriceTrackerScraperFunction
+
