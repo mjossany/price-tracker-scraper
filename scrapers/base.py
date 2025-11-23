@@ -4,6 +4,7 @@ Base scraper class providing common functionality for all site-specific scrapers
 import re
 import time
 import logging
+import gzip
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any
 from dataclasses import dataclass
@@ -70,7 +71,7 @@ class BaseScraper(ABC):
             'User-Agent': self._get_user_agent(),
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Encoding': 'gzip, deflate',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1',
             'Sec-Fetch-Dest': 'document',
@@ -115,6 +116,16 @@ class BaseScraper(ABC):
                 response.raise_for_status()
 
                 logger.info(f"Successfully fetched {url} in {response_time}ms (attempt {attempt + 1})")
+
+                content = response.content
+                if content.startswith(b'\x1f\x8b'):
+                    try:
+                        logger.debug(f"Detected raw GZIP content for {url}, decompressing manually")
+                        content = gzip.decompress(content)
+                        encoding = response.encoding or response.apparent_encoding or 'utf-8' 
+                        return content.decode(encoding, errors='replace')
+                    except Exception as e:
+                        logger.warning(f"Manual GZIP decompression failed: {e}")
                 return response.text
             except requests.exceptions.Timeout:
                 logger.warning(f"Timeout fetching {url} (attempt {attempt + 1}/{self.max_retries})")
