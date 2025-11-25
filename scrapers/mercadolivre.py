@@ -152,3 +152,30 @@ class MercadoLivreScraper(BaseScraper):
 
         html_lower = html.lower()
         return not any(phrase in html_lower for phrase in ml_unavailable_phrases)
+
+    def _get_price_text(self, element) -> str:
+        """
+        Extract price text, handling Mercado Livre's split fraction/cents structure.
+        """
+
+        text = element.get_text().strip()
+
+        # Check if we are dealing with the Andes money component fraction
+        classes = element.get('class', [])
+
+        cents_selector = None
+        if 'andes-money-amount__fraction' in classes:
+            cents_selector = '.andes-money-amount__cents'
+        elif 'price-tag-fraction' in classes:
+            cents_selector = '.price-tag-cents'
+        
+        if cents_selector:
+            parent = element.parent
+            if parent:
+                cents_element = parent.select_one(cents_selector)
+                if cents_element:
+                    cents_text = cents_element.get_text().strip()
+                    # Return with comma separator for Brazilian format parser
+                    return f"{text},{cents_text}"
+        
+        return text

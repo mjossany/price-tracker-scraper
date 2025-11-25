@@ -196,7 +196,7 @@ class BaseScraper(ABC):
             try:
                 element = soup.select_one(selector)
                 if element:
-                    price_text = element.get_text().strip()
+                    price_text = self._get_price_text(element)
                     price = self.parse_price_text(price_text)
                     if price:
                         logger.debug(f"Extracted price ${price} using selector: {selector}")
@@ -207,6 +207,13 @@ class BaseScraper(ABC):
         
         logger.warning("Could not extract price using any selector")
         return None
+    
+    def _get_price_text(self, element) -> str:
+        """
+        Extract text from a price element.
+        Can be overriden by subclasses to handle complex price structures.
+        """
+        return element.get_text().strip()
     
     def parse_price_text(self, price_text: str) -> Optional[float]:
         """
