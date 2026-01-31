@@ -1,0 +1,6 @@
+{
+    "action": "test_scraper",
+    "store": "amazon_br",
+    "url": "https://www.amazon.com.br/Apple-iPhone-15-128-GB/dp/B0CP6CJ8JG?ref=dlx_deals_dg_dcl_B0CP6CVJSG_dt_sl14_2d_pi&pf_rd_r=6VJ5H3SA914X8D8TPFV3&pf_rd_p=1a055ba6-3dde-4b00-9801-79e612b9cf2d&th=1",
+    "product_link_id": "test-amazon-001"
+}

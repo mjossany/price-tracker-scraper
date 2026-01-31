@@ -42,7 +42,7 @@ echo ""
 # Invoke SAM with debug port (use built template)
 sam local invoke PriceTrackerScraperFunction \
   --template .aws-sam/build/template.yaml \
-  --event events/test_mercadolivre.json \
+  --event events/test_amazon.json \
   --debug-port 5678 \
   --parameter-overrides "DatabaseUrl=postgresql://dummy:dummy@localhost:5432/db LogLevel=DEBUG"
 

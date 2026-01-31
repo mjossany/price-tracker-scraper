@@ -25,11 +25,12 @@ class AmazonBrScraper(BaseScraper):
         """
         return [
             '.a-price .a-offscreen',
-            '.a-price-whole',
+            '.a-price .a-price-whole',
+            'span.a-price[data-a-color="price"] .a-offscreen',
             '#priceblock_ourprice',
             '#priceblock_dealprice',
             '#priceblock_saleprice',
-            'span.a-price[data-a-color="price"] .a-offscreen',
+            '.a-section.a-spacing-small .a-price .a-offscreen',
             'meta[property="og:price:amount"]',
             'script[type="application/ld+json"]',
         ]
@@ -118,3 +119,28 @@ class AmazonBrScraper(BaseScraper):
                 response_time_ms=response_time,
                 error=str(e)
             )
+
+    def _get_price_text(self, element) -> str:
+        """
+        Extract price text, handling Amazon's split whole/fraction structure.
+        
+        Args:
+            element: BeautifulSoup element
+            
+        Returns:
+            Price text with decimal separator
+        """
+        text = element.get_text().strip()
+        classes = element.get('class', [])
+        
+        # Handle split price format (.a-price-whole + .a-price-fraction)
+        if 'a-price-whole' in classes:
+            parent = element.parent
+            if parent:
+                fraction_element = parent.select_one('.a-price-fraction')
+                if fraction_element:
+                    fraction_text = fraction_element.get_text().strip()
+                    # Amazon BR uses comma as decimal separator
+                    return f"{text},{fraction_text}"
+        
+        return text
