@@ -10,7 +10,6 @@ from scrapers import get_scraper
 
 logger = get_logger("price-tracker-scraper")
 
-
 def lambda_handler(event, context):
     """
     Lambda handler for price scraping.
