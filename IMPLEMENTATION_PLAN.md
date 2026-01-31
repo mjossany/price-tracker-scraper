@@ -86,34 +86,8 @@ price-tracker-scraper/
 
 #### 2.2 Site-Specific Scrapers (Brazilian E-commerce)
 - [ ] **Mercado Livre Scraper** (`scrapers/mercadolivre.py`)
-  - Handle auction vs fixed price listings
-  - Extract shipping costs (frete grátis detection)
-  - Handle "Melhores Ofertas" and promotions
-  - Deal with seller variations
 
 - [ ] **Amazon Brasil Scraper** (`scrapers/amazon_br.py`)
-  - Handle different product page layouts
-  - Extract price, original price, availability
-  - Handle Prime vs non-Prime pricing
-  - Deal with "Indisponível" states
-  - Handle parcelamento (installment prices)
-
-- [ ] **Magazine Luiza Scraper** (`scrapers/magazineluiza.py`)
-  - Handle in-store vs online pricing
-  - Extract pickup/delivery options
-  - Handle "Retirada em Loja"
-  - Extract parcelamento information
-
-- [ ] **Americanas Scraper** (`scrapers/americanas.py`)
-  - Handle marketplace sellers
-  - Extract shipping and delivery times
-  - Handle cashback/points promotions
-  - Extract parcelamento details
-
-- [ ] **Casas Bahia Scraper** (`scrapers/casasbahia.py`)
-  - Handle different payment methods pricing
-  - Extract store pickup availability
-  - Handle parcelamento (installments)
 
 #### 2.3 Scraper Factory
 ```python

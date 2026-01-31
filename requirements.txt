@@ -3,6 +3,4 @@ requests==2.31.0
 psycopg2-binary==2.9.9
 boto3==1.34.10
 python-dateutil==2.8.2
-fake-useragent==1.4.0
-psutil==5.9.8
 lxml==5.1.0

@@ -1,0 +1,146 @@
+---
+description: Python coding standards for price tracker (beginner-friendly)
+alwaysApply: true
+---
+
+# Python Standards - Keep It Simple
+
+## AI Response Style
+
+- Give short, direct answers
+- No long explanations unless asked
+- Show code examples instead of describing them
+- Be concise and practical
+
+## Code Simplicity
+
+**Keep functions short** - One clear purpose per function
+
+```python
+# ❌ BAD - Too much in one function
+def process_product(url):
+    html = fetch_html(url)
+    price = parse_price(html)
+    currency = detect_currency(html)
+    save_to_db(price, currency)
+    send_notification(price)
+    return price
+
+# ✅ GOOD - Each function does one thing
+def scrape_product_price(url):
+    html = fetch_html(url)
+    price = parse_price(html)
+    return price
+```
+
+**Use clear names** - No abbreviations or shortcuts
+
+```python
+# ❌ BAD
+def get_prc(u):
+    r = requests.get(u)
+    return r
+
+# ✅ GOOD
+def fetch_html(url):
+    response = requests.get(url)
+    return response.text
+```
+
+## Error Handling
+
+**Always log errors clearly**
+
+```python
+# ❌ BAD - Silent failure
+try:
+    price = scrape_price(url)
+except:
+    pass
+
+# ✅ GOOD - Log what happened
+try:
+    price = scrape_price(url)
+except requests.Timeout:
+    logger.error(f"Timeout fetching {url}")
+    return None
+except Exception as e:
+    logger.error(f"Failed to scrape {url}: {e}")
+    return None
+```
+
+## Docstrings
+
+**Add simple docstrings to functions**
+
+```python
+# ✅ GOOD
+def parse_price_text(price_text: str) -> Optional[float]:
+    """
+    Parse price from text like "R$ 1.234,56" to 1234.56
+    
+    Args:
+        price_text: Raw price text from HTML
+        
+    Returns:
+        Price as float, or None if invalid
+    """
+    # implementation here
+```
+
+## Data Structures
+
+**Use dataclasses for simple data**
+
+```python
+# ✅ GOOD - Clear and simple
+from dataclasses import dataclass
+
+@dataclass
+class ScrapingResult:
+    product_link_id: str
+    url: str
+    price: Optional[float]
+    currency: str
+    was_available: bool
+```
+
+## Project-Specific Patterns
+
+**Follow existing patterns**:
+- Abstract base classes like `BaseScraper`
+- Use the `logger` from `utils/logger.py`
+- Return `ScrapingResult` from scrapers
+- Use `requests.Session` for HTTP calls
+- Add retry logic for network requests
+
+**AWS Lambda handlers**:
+- Keep handler simple
+- Separate logic into helper functions
+- Return proper status codes (200, 400, 500)
+- Always log with request ID
+
+```python
+def lambda_handler(event, context):
+    logger.info(f"Started - Request ID: {context.aws_request_id}")
+    try:
+        result = process_event(event)
+        return {
+            'statusCode': 200,
+            'body': json.dumps(result)
+        }
+    except Exception as e:
+        logger.error(f"Error: {e}", exc_info=True)
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
+```
+
+## Remember
+
+- **Simple is better than clever**
+- **Readable code > short code**
+- **Log everything important**
+- **One function = one job**
+- **Clear names matter**

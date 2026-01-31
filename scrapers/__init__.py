@@ -20,7 +20,7 @@ def get_scraper(store: str) -> BaseScraper:
     """
     scrapers = {
         'mercadolivre': MercadoLivreScraper,
-        'mercado_livre': MercadoLivreScraper, # Alternative naming
+        'mercado_livre': MercadoLivreScraper,
     }
 
     scraper_class = scrapers.get(store.lower())

@@ -79,7 +79,7 @@ def database_schema(test_database_url):
             description TEXT,
             image_url TEXT,
             target_price NUMERIC(12,2),
-            currency VARCHAR(3) DEFAULT 'USD',
+            currency VARCHAR(3) DEFAULT 'BRL',
             notification_enabled BOOLEAN DEFAULT true,
             is_active BOOLEAN DEFAULT true,
             created_at TIMESTAMP DEFAULT now(),
@@ -112,7 +112,7 @@ def database_schema(test_database_url):
             price NUMERIC(12,2) NOT NULL,
             original_price NUMERIC(12,2),
             discount_percentage NUMERIC(5,2),
-            currency VARCHAR(3) DEFAULT 'USD',
+            currency VARCHAR(3) DEFAULT 'BRL',
             was_available BOOLEAN DEFAULT true,
             scrape_source VARCHAR(50),
             response_time_ms INTEGER,
@@ -212,7 +212,7 @@ def sample_product(test_database_url, sample_user):
         'Test Product',
         'A test product for integration tests',
         99.99,
-        'USD',
+        'BRL',
         True,
         True
     ))

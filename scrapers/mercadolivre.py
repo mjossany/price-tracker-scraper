@@ -1,14 +1,14 @@
 """
 Mercado Livre scraper for Brazilian e-commerce products.
-Handles price extraction in Brazilian Real (R$) format.
 """
 import logging
-from typing import List, Optional
 import time
+from typing import List
 
 from scrapers.base import BaseScraper, ScrapingResult
 
 logger = logging.getLogger(__name__)
+
 
 class MercadoLivreScraper(BaseScraper):
     """
@@ -19,26 +19,14 @@ class MercadoLivreScraper(BaseScraper):
         """
         Get CSS selectors for extracting price from Mercado Livre HTML.
 
-        Selectors are ordered by reliability/preference.
-        Mercado Livre uses Andes Design System for their UI components.
-
         Returns:
            List of CSS selectors to try in order.
-        """ 
+        """
         return [
-            # Primary: Andes Design System money component
             'span.andes-money-amount__fraction',
-
-            # Alternative: Old price tag format
             'span.price-tag-fraction',
-
-            # Fallback: Price tag amount
             'span.price-tag-amount',
-
-            # Meta tag fallback (structured data)
             'meta[property="og:price:amount"]',
-
-            # JSON-LD structured data (last resort)
             'script[type="application/ld+json"]',
         ]
 
@@ -49,14 +37,13 @@ class MercadoLivreScraper(BaseScraper):
         Args:
             url: Mercado Livre product URL
             product_link_id: Database ID of the product link
-        
+
         Returns:
             ScrapingResult with price data and metadata
         """
         start_time = time.time()
 
         try:
-            # Fetch HTML content
             html = self.fetch_html(url)
 
             if not html:
@@ -73,45 +60,52 @@ class MercadoLivreScraper(BaseScraper):
                     error='Failed to fetch HTML'
                 )
 
-            # Extract price
-            price = self.extract_price_from_html(html, self.get_price_selectors())
-
-            # Check availability
+            # Check availability first
             is_available = self.is_product_available(html)
+            
+            # If product is unavailable, return early without extracting price
+            if not is_available:
+                currency = self.extract_currency(html, default='BRL')
+                response_time = int((time.time() - start_time) * 1000)
+                logger.info(f"Product unavailable at {url}")
+                return ScrapingResult(
+                    product_link_id=product_link_id,
+                    url=url,
+                    price=None,
+                    original_price=None,
+                    currency=currency,
+                    was_available=False,
+                    scrape_source='mercadolivre',
+                    response_time_ms=response_time,
+                    error='Product is not available'
+                )
 
-            #Extract currency (should be BRL for Mercado Livre)
+            # Product is available, proceed with price extraction
+            price = self.extract_price_from_html(html, self.get_price_selectors())
             currency = self.extract_currency(html, default='BRL')
-
             response_time = int((time.time() - start_time) * 1000)
 
-            #Log results
             if price:
-                logger.info(
-                    f"Successfully scraped Mercado Livre product: "
-                    f"R$ {price:.2f} (available: {is_available}) in {response_time}ms"
-                )
+                logger.info(f"Scraped Mercado Livre: R$ {price:.2f}, available: {is_available}")
             else:
-                logger.warning(
-                    f"Price not found for Mercado Livre product: {url}"
-                    f"(available: {is_available})"
-                )
-            
+                logger.warning(f"Price not found for {url}")
+
             return ScrapingResult(
                 product_link_id=product_link_id,
                 url=url,
                 price=price,
-                original_price=None,  # Not tracking original prices per requirements
+                original_price=None,
                 currency=currency,
                 was_available=is_available,
                 scrape_source='mercadolivre',
                 response_time_ms=response_time,
                 error=None if price else 'Price element not found'
             )
-        
+
         except Exception as e:
             response_time = int((time.time() - start_time) * 1000)
-            logger.error(f"Error scraping Mercado Livre product {url}: {str(e)}")
-            
+            logger.error(f"Error scraping {url}: {e}")
+
             return ScrapingResult(
                 product_link_id=product_link_id,
                 url=url,
@@ -128,20 +122,17 @@ class MercadoLivreScraper(BaseScraper):
         """
         Check if product is available on Mercado Livre.
 
-        Extends base class method with Mercado Livre-specific phrases.
-
         Args:
             html: HTML content to check
 
         Returns:
             True if product appears to be available
         """
-        #Check base unavailability phrases first
         if not super().is_product_available(html):
             return False
 
         # Mercado Livre-specific unavailability indicators
-        ml_unavailable_phrases = [
+        ml_unavailable = [
             'pausado temporariamente',
             'publicação pausada',
             'vendedor sem estoque',
@@ -151,16 +142,13 @@ class MercadoLivreScraper(BaseScraper):
         ]
 
         html_lower = html.lower()
-        return not any(phrase in html_lower for phrase in ml_unavailable_phrases)
+        return not any(phrase in html_lower for phrase in ml_unavailable)
 
     def _get_price_text(self, element) -> str:
         """
         Extract price text, handling Mercado Livre's split fraction/cents structure.
         """
-
         text = element.get_text().strip()
-
-        # Check if we are dealing with the Andes money component fraction
         classes = element.get('class', [])
 
         cents_selector = None
@@ -168,14 +156,13 @@ class MercadoLivreScraper(BaseScraper):
             cents_selector = '.andes-money-amount__cents'
         elif 'price-tag-fraction' in classes:
             cents_selector = '.price-tag-cents'
-        
+
         if cents_selector:
             parent = element.parent
             if parent:
                 cents_element = parent.select_one(cents_selector)
                 if cents_element:
                     cents_text = cents_element.get_text().strip()
-                    # Return with comma separator for Brazilian format parser
                     return f"{text},{cents_text}"
-        
+
         return text

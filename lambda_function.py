@@ -1,13 +1,15 @@
+"""
+AWS Lambda handler for price scraping.
+"""
 import json
-import os
-from sys import exc_info
+import logging
 from typing import Dict, Any
 
-from utils.logger import get_logger, MetricsLogger
+from utils.logger import get_logger
 from scrapers import get_scraper
 
 logger = get_logger("price-tracker-scraper")
-metrics = MetricsLogger(logger)
+
 
 def lambda_handler(event, context):
     """
@@ -21,43 +23,37 @@ def lambda_handler(event, context):
         "product_link_id": "test-123"
     }
     """
-    logger.info("Price tracker scraper started")
-    logger.info(f"Event: {json.dumps(event)}")
-
-    metrics.record("execution_id", context.aws_request_id)
-    metrics.record("function_name", context.function_name)
-    metrics.increment("executions")
+    logger.info(f"Price tracker scraper started - Request ID: {context.aws_request_id}")
+    logger.debug(f"Event: {json.dumps(event)}")
 
     try:
-        #Check if this is a test scraper event
+        # Check if this is a test scraper event
         if event.get('action') == 'test_scraper':
-            return handle_test_scraper(event, context)
-        
+            return handle_test_scraper(event)
+
         # Default response for scheduled events
         return {
             'statusCode': 200,
             'body': json.dumps({
                 'message': 'Price tracker scraper executed successfully',
-                'timestamp': context.aws_request_id
+                'request_id': context.aws_request_id
             })
         }
     except Exception as e:
-        logger.error(f"Error in lambda handler: {str(e)}", exc_info=True)
+        logger.error(f"Error in lambda handler: {e}", exc_info=True)
         return {
             'statusCode': 500,
-            'body': json.dumps({
-                'error': str(e)
-            })
+            'body': json.dumps({'error': str(e)})
         }
 
-def handle_test_scraper(event: Dict[str, Any], context) -> Dict[str, Any]:
+
+def handle_test_scraper(event: Dict[str, Any]) -> Dict[str, Any]:
     """
     Handle test scraper event.
 
     Args:
         event: Lambda event with scraper test parameters
-        context: Lambda context
-    
+
     Returns:
         Response with scraping results
     """
@@ -68,21 +64,14 @@ def handle_test_scraper(event: Dict[str, Any], context) -> Dict[str, Any]:
     if not url:
         return {
             'statusCode': 400,
-            'body': json.dumps({
-                'error': 'Missing required parameter: url'
-            })
+            'body': json.dumps({'error': 'Missing required parameter: url'})
         }
-    
+
     logger.info(f"Testing {store} scraper with URL: {url}")
 
     try:
-        # Get the appropriate scraper
         scraper = get_scraper(store)
-
-        # Scrape the price
         result = scraper.scrape_price(url=url, product_link_id=product_link_id)
-
-        # Close the scraper session
         scraper.close()
 
         # Convert result to dict for JSON serialization
@@ -98,9 +87,9 @@ def handle_test_scraper(event: Dict[str, Any], context) -> Dict[str, Any]:
             'error': result.error,
             'discount_percentage': result.discount_percentage,
         }
-        
+
         logger.info(f"Scraping completed: {result_dict}")
-        
+
         return {
             'statusCode': 200,
             'body': json.dumps({
@@ -109,18 +98,14 @@ def handle_test_scraper(event: Dict[str, Any], context) -> Dict[str, Any]:
             })
         }
     except ValueError as e:
-        logger.error(f"Invalid store: {str(e)}")
+        logger.error(f"Invalid store: {e}")
         return {
             'statusCode': 400,
-            'body': json.dumps({
-                'error': str(e)
-            })
+            'body': json.dumps({'error': str(e)})
         }
     except Exception as e:
-        logger.error(f"Scraping failed: {str(e)}", exc_info=True)
+        logger.error(f"Scraping failed: {e}", exc_info=True)
         return {
             'statusCode': 500,
-            'body': json.dumps({
-                'error': str(e)
-            })
+            'body': json.dumps({'error': str(e)})
         }
