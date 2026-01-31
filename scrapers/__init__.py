@@ -4,13 +4,14 @@ Scraper factory for creating site-specific scrapers.
 
 from scrapers.base import BaseScraper
 from scrapers.mercadolivre import MercadoLivreScraper
+from scrapers.amazon import AmazonBrScraper
 
 def get_scraper(store: str) -> BaseScraper:
     """
     Factory function to get the appropriate scraper for a given store.
     
     Args:
-        store: Store identifier (e.g., 'mercadolivre', 'amazon_br')
+        store: Store identifier (e.g., 'mercadolivre', 'amazon_br', 'amazon')
     
     Returns:
         Instance of the appropriate scraper class
@@ -21,6 +22,8 @@ def get_scraper(store: str) -> BaseScraper:
     scrapers = {
         'mercadolivre': MercadoLivreScraper,
         'mercado_livre': MercadoLivreScraper,
+        'amazon_br': AmazonBrScraper,
+        'amazon': AmazonBrScraper,
     }
 
     scraper_class = scrapers.get(store.lower())
@@ -33,4 +36,4 @@ def get_scraper(store: str) -> BaseScraper:
     
     return scraper_class()
 
-__all__ = ['BaseScraper', 'MercadoLivreScraper', 'get_scraper']
+__all__ = ['BaseScraper', 'MercadoLivreScraper', 'AmazonBrScraper', 'get_scraper']
